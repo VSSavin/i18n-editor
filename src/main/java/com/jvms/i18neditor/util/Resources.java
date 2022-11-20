@@ -123,12 +123,12 @@ public final class Resources {
 	 * @param 	resource the resource.
 	 * @throws 	IOException if an I/O error occurs reading the file.
 	 */
-	public static void load(Resource resource) throws IOException {
+	public static void load(Resource resource, boolean useUTF8Encoding) throws IOException {
 		ResourceType type = resource.getType();
 		Path path = resource.getPath();
 		SortedMap<String,String> translations;
 		if (type == ResourceType.Properties) {
-			ExtendedProperties content = new ExtendedProperties();
+			ExtendedProperties content = new ExtendedProperties(useUTF8Encoding);
 			content.load(path);
 			translations = fromProperties(content);
 		} else {
@@ -156,7 +156,7 @@ public final class Resources {
 	 * @param 	plainKeys 
 	 * @throws 	IOException if an I/O error occurs writing the file.
 	 */
-	public static void write(Resource resource, boolean prettyPrinting, boolean flattenKeys) throws IOException {
+	public static void write(Resource resource, boolean prettyPrinting, boolean flattenKeys, boolean useUTF8Encoding) throws IOException {
 		if (resource.getChecksum() != null) {
 			String checksum = createChecksum(resource);
 			if (!checksum.equals(resource.getChecksum())) {
@@ -165,7 +165,7 @@ public final class Resources {
 		}
 		ResourceType type = resource.getType();
 		if (type == ResourceType.Properties) {
-			ExtendedProperties content = toProperties(resource.getTranslations());
+			ExtendedProperties content = toProperties(resource.getTranslations(), useUTF8Encoding);
 			content.store(resource.getPath());
 		} else {
 			String content = toJson(resource.getTranslations(), prettyPrinting, flattenKeys);
@@ -196,7 +196,8 @@ public final class Resources {
 	 * @return	The newly created resource.
 	 * @throws 	IOException if an I/O error occurs writing the file.
 	 */
-	public static Resource create(ResourceType type, Path root, String fileDefinition, FileStructure structure, Optional<Locale> locale) 
+	public static Resource create(ResourceType type, Path root, String fileDefinition, FileStructure structure,
+								  Optional<Locale> locale, boolean useUTF8Encoding)
 			throws IOException {
 		String extension = type.getExtension();
 		Path path;
@@ -206,7 +207,7 @@ public final class Resources {
 			path = Paths.get(root.toString(), getFilename(fileDefinition, locale) + extension);				
 		}
 		Resource resource = new Resource(type, path, locale.orElse(null));
-		write(resource, false, false);
+		write(resource, false, false, useUTF8Encoding);
 		return resource;
 	}
 	
@@ -226,8 +227,8 @@ public final class Resources {
 		return result;
 	}
 	
-	private static ExtendedProperties toProperties(Map<String,String> translations) {
-		ExtendedProperties result = new ExtendedProperties();
+	private static ExtendedProperties toProperties(Map<String,String> translations, boolean useUTF8Encoding) {
+		ExtendedProperties result = new ExtendedProperties(useUTF8Encoding);
 		translations.forEach((key, value) -> {
 			if (!Strings.isNullOrEmpty(value)) {
 				result.put(key, value);

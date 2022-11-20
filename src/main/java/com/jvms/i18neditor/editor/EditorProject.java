@@ -21,6 +21,8 @@ public class EditorProject {
 	private List<Resource> resources;
 	private boolean minifyResources;
 	private boolean flattenJSON;
+	private boolean useUTF8Encoding = true;
+	private boolean useLatin1Encoding = false;
 	private FileStructure resourceFileStructure;
 	
 	public EditorProject(Path path) {
@@ -83,7 +85,23 @@ public class EditorProject {
 	public void setFlattenJSON(boolean flattenJSON) {
 		this.flattenJSON = flattenJSON;
 	}
-	
+
+	public boolean isUseUTF8Encoding() {
+		return useUTF8Encoding;
+	}
+
+	public void setUseUTF8Encoding(boolean useUTF8Encoding) {
+		this.useUTF8Encoding = useUTF8Encoding;
+	}
+
+	public boolean isUseLatin1Encoding() {
+		return useLatin1Encoding;
+	}
+
+	public void setUseLatin1Encoding(boolean useLatin1Encoding) {
+		this.useLatin1Encoding = useLatin1Encoding;
+	}
+
 	public boolean supportsResourceParentValues() {
 		return resourceType == ResourceType.Properties;
 	}

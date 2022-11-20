@@ -10,11 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 import com.jvms.i18neditor.ResourceType;
 import com.jvms.i18neditor.editor.menu.AddLocaleMenuItem;
@@ -51,6 +47,8 @@ public class EditorMenuBar extends JMenuBar {
 	private JMenuItem openContainingFolderMenuItem;
 	private JMenuItem projectSettingsMenuItem;
 	private JMenuItem editorSettingsMenuItem;
+	private JMenuItem useUTF8EncodingSettingsMenuItem;
+	private JMenuItem useLatin1EncodingSettingsMenuItem;
 	private JMenu openRecentMenuItem;
 	private JMenu editMenu;
 	private JMenu viewMenu;
@@ -77,6 +75,9 @@ public class EditorMenuBar extends JMenuBar {
 			settingsMenu.add(projectSettingsMenuItem);
 			settingsMenu.addSeparator();
 			settingsMenu.add(editorSettingsMenuItem);
+			settingsMenu.addSeparator();
+			settingsMenu.add(useUTF8EncodingSettingsMenuItem);
+			settingsMenu.add(useLatin1EncodingSettingsMenuItem);
 		} else {
 			settingsMenu.add(editorSettingsMenuItem);
 		}
@@ -110,6 +111,20 @@ public class EditorMenuBar extends JMenuBar {
      		openRecentMenuItem.addSeparator();
      		openRecentMenuItem.add(clearMenuItem);
      	}
+	}
+
+	public void setUTF8Encoding() {
+		if (useUTF8EncodingSettingsMenuItem != null && useLatin1EncodingSettingsMenuItem != null) {
+			useUTF8EncodingSettingsMenuItem.setSelected(true);
+			useLatin1EncodingSettingsMenuItem.setSelected(false);
+		}
+	}
+
+	public void setLatin1Encoding() {
+		if (useUTF8EncodingSettingsMenuItem != null && useLatin1EncodingSettingsMenuItem != null) {
+			useUTF8EncodingSettingsMenuItem.setSelected(false);
+			useLatin1EncodingSettingsMenuItem.setSelected(true);
+		}
 	}
 	
 	private void setupUI() {
@@ -215,7 +230,26 @@ public class EditorMenuBar extends JMenuBar {
         });
         
         settingsMenu.add(editorSettingsMenuItem);
-        
+
+		ButtonGroup buttonGroup = new ButtonGroup();
+		useUTF8EncodingSettingsMenuItem =
+				new JRadioButtonMenuItem(MessageBundle.get("menu.settings.encoding.utf8.title"));
+		useUTF8EncodingSettingsMenuItem.addActionListener(l -> {
+			editor.getProject().setUseUTF8Encoding(true);
+			editor.getProject().setUseLatin1Encoding(false);
+			editor.reloadProject();
+		});
+		buttonGroup.add(useUTF8EncodingSettingsMenuItem);
+		useLatin1EncodingSettingsMenuItem =
+				new JRadioButtonMenuItem(MessageBundle.get("menu.settings.encoding.latin1.title"));
+		useLatin1EncodingSettingsMenuItem.addActionListener(l -> {
+			editor.getProject().setUseLatin1Encoding(true);
+			editor.getProject().setUseUTF8Encoding(false);
+			editor.reloadProject();
+		});
+		buttonGroup.add(useLatin1EncodingSettingsMenuItem);
+        useUTF8EncodingSettingsMenuItem.setSelected(true);
+
         // Help menu
      	JMenu helpMenu = new JMenu(MessageBundle.get("menu.help.title"));
      	helpMenu.setMnemonic(MessageBundle.getMnemonic("menu.help.vk"));

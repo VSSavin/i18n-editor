@@ -1,9 +1,8 @@
 package com.jvms.i18neditor.util;
 
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -15,6 +14,7 @@ import java.util.Properties;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +35,18 @@ public class ExtendedProperties extends Properties {
 	private final static long serialVersionUID = 6042931434040718478L;
 	private final static Logger log = LoggerFactory.getLogger(ExtendedProperties.class);
 	private final String listSeparator;
-	
+	private boolean useUtf8Encoding = false;
+
 	/**
      * Creates an empty property list with no default values and "," as list separator.
      */
 	public ExtendedProperties() {
 		this(null, ",");
+	}
+
+	public ExtendedProperties(boolean useUtf8Encoding) {
+		this();
+		this.useUtf8Encoding = useUtf8Encoding;
 	}
 	
 	/**
@@ -80,6 +86,15 @@ public class ExtendedProperties extends Properties {
 	 * @param 	path the path to the property file.
 	 */
 	public void load(Path path) {
+		if (useUtf8Encoding) {
+			try(Reader reader = new InputStreamReader(new FileInputStream(path.toString()), StandardCharsets.UTF_8)) {
+				load(reader);
+				return;
+			} catch (IOException e) {
+				log.error("Unable to load properties from " + path, e);
+			}
+		}
+
 		try (InputStream in = Files.newInputStream(path)) {
 			load(in);
 		} catch (IOException e) {
@@ -95,6 +110,14 @@ public class ExtendedProperties extends Properties {
 	 * @param 	path the path to the property file.
 	 */
 	public void store(Path path) {
+		if (useUtf8Encoding) {
+			try (Writer writer = new OutputStreamWriter(new FileOutputStream(path.toString()), StandardCharsets.UTF_8)) {
+				store(writer, null);
+				return;
+			} catch (IOException e) {
+				log.error("Unable to store properties to " + path, e);
+			}
+		}
 		try (OutputStream out = new OutputStreamWrapper(Files.newOutputStream(path))) {
 			store(out, null);
 		} catch (IOException e) {

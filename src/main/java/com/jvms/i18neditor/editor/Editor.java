@@ -144,7 +144,7 @@ public class Editor extends JFrame {
 			
 			if (project.getResourceFileStructure() == FileStructure.Flat) {
 				Resource resource = Resources.create(type, dir, 
-						project.getResourceFileDefinition(), FileStructure.Flat, Optional.empty());
+						project.getResourceFileDefinition(), FileStructure.Flat, Optional.empty(), project.isUseUTF8Encoding());
 				setupResource(resource);
 				project.addResource(resource);
 			}
@@ -191,7 +191,7 @@ public class Editor extends JFrame {
 				}));
 				resourceList.forEach(resource -> {
 					try {
-						Resources.load(resource);
+						Resources.load(resource, project.isUseUTF8Encoding());
 						setupResource(resource);
 						project.addResource(resource);
 					} catch (IOException e) {
@@ -277,8 +277,9 @@ public class Editor extends JFrame {
 			return false;
 		}
 		try {
-			Resource resource = Resources.create(project.getResourceType(), project.getPath(), 
-					project.getResourceFileDefinition(), project.getResourceFileStructure(), Optional.of(locale));
+			Resource resource = Resources.create(project.getResourceType(), project.getPath(),
+					project.getResourceFileDefinition(), project.getResourceFileStructure(), Optional.of(locale),
+					project.isUseUTF8Encoding());
 			addResource(resource);
 			requestFocusInFirstResourceField();
 			return true;
@@ -924,7 +925,7 @@ public class Editor extends JFrame {
 	private boolean saveResource(Resource resource) {
 		if (project != null) {
 			try {
-				Resources.write(resource, !project.isMinifyResources(), project.isFlattenJSON());
+				Resources.write(resource, !project.isMinifyResources(), project.isFlattenJSON(), project.isUseUTF8Encoding());
 			} catch (ChecksumException e) {
 				boolean confirm = Dialogs.showConfirmDialog(this, 
 						MessageBundle.get("dialogs.save.checksum.title"), 
@@ -952,16 +953,20 @@ public class Editor extends JFrame {
 		props.setProperty("resource_type", project.getResourceType().toString());
 		props.setProperty("resource_definition", project.getResourceFileDefinition());
 		props.setProperty("resource_structure", project.getResourceFileStructure());
+		props.setProperty("use_utf8_properties_encoding", project.isUseUTF8Encoding());
+		props.setProperty("use_latin1_properties_encoding", project.isUseLatin1Encoding());
 		props.store(Paths.get(project.getPath().toString(), PROJECT_FILE));
 	}
 	
 	private void restoreProjectState(EditorProject project) {
-		ExtendedProperties props = new ExtendedProperties();
+		ExtendedProperties props = new ExtendedProperties(project.isUseUTF8Encoding());
 		Path path = Paths.get(project.getPath().toString(), PROJECT_FILE);
 		if (Files.exists(path)) {
 			props.load(Paths.get(project.getPath().toString(), PROJECT_FILE));
 			project.setMinifyResources(props.getBooleanProperty("minify_resources", settings.isMinifyResources()));
 			project.setFlattenJSON(props.getBooleanProperty("flatten_json", settings.isFlattenJSON()));
+			project.setUseLatin1Encoding(props.getBooleanProperty("use_latin1_properties_encoding", false));
+			project.setUseUTF8Encoding(props.getBooleanProperty("use_utf8_properties_encoding", false));
 			project.setResourceType(props.getEnumProperty("resource_type", ResourceType.class));
 			String resourceName = props.getProperty("resource_name"); // for backwards compatibility
 			if (Strings.isNullOrEmpty(resourceName)) {
@@ -978,6 +983,8 @@ public class Editor extends JFrame {
 			project.setResourceFileDefinition(settings.getResourceFileDefinition());
 			project.setResourceFileStructure(settings.getResourceFileStructure());
 		}
+		if (project.isUseUTF8Encoding()) editorMenu.setUTF8Encoding();
+		if (project.isUseLatin1Encoding()) editorMenu.setLatin1Encoding();
 	}
 	
 	private void storeEditorState() {
