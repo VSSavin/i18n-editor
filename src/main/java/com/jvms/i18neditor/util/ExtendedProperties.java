@@ -349,8 +349,8 @@ public class ExtendedProperties extends Properties {
 		return Collections.synchronizedSet(new EntrySet(sortedSet));
 	}
 
-	private static class EntrySet implements Set<Map.Entry<Object, Object>>, Comparable<Set<Map.Entry<Object, Object>>> {
-		private Set<Map.Entry<Object,Object>> entrySet;
+	private static class EntrySet implements Set<Map.Entry<Object, Object>> {
+		private final Set<Map.Entry<Object,Object>> entrySet;
 
 		private EntrySet(Set<Map.Entry<Object, Object>> entrySet) {
 			this.entrySet = entrySet;
@@ -407,12 +407,6 @@ public class ExtendedProperties extends Properties {
 		@Override
 		public Iterator<Map.Entry<Object, Object>> iterator() {
 			return entrySet.iterator();
-		}
-
-		@Override
-		public int compareTo(Set<Map.Entry<Object, Object>> o) {
-			//o.forEach(objectObjectEntry -> objectObjectEntry.);
-			return 0;
 		}
 	}
 	
