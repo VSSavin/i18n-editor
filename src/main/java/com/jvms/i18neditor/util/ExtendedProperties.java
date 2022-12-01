@@ -1,20 +1,12 @@
 package com.jvms.i18neditor.util;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -333,6 +325,96 @@ public class ExtendedProperties extends Properties {
     public synchronized Enumeration<Object> keys() {
         return Collections.enumeration(new TreeSet<Object>(super.keySet()));
     }
+
+	@Override
+	public Set<Map.Entry<Object, Object>> entrySet() {
+		Set<Map.Entry<Object, Object>> parentEntrySet = super.entrySet();
+		Set<Map.Entry<Object, Object>> sortedSet = new TreeSet<>(Comparator.comparing(o -> o.getKey().toString()));
+		parentEntrySet.forEach(entry -> sortedSet.add(new Map.Entry<Object, Object>() {
+			@Override
+			public Object getKey() {
+				return entry.getKey();
+			}
+
+			@Override
+			public Object getValue() {
+				return entry.getValue();
+			}
+
+			@Override
+			public Object setValue(Object value) {
+				return entry.setValue(value);
+			}
+		}));
+		return Collections.synchronizedSet(new EntrySet(sortedSet));
+	}
+
+	private static class EntrySet implements Set<Map.Entry<Object, Object>>, Comparable<Set<Map.Entry<Object, Object>>> {
+		private Set<Map.Entry<Object,Object>> entrySet;
+
+		private EntrySet(Set<Map.Entry<Object, Object>> entrySet) {
+			this.entrySet = entrySet;
+		}
+
+		@Override public int size() { return entrySet.size(); }
+		@Override public boolean isEmpty() { return entrySet.isEmpty(); }
+		@Override public boolean contains(Object o) { return entrySet.contains(o); }
+		@Override public Object[] toArray() { return entrySet.toArray(); }
+		@Override public <T> T[] toArray(T[] a) { return entrySet.toArray(a); }
+		@Override public void clear() { entrySet.clear(); }
+		@Override public boolean remove(Object o) { return entrySet.remove(o); }
+
+		@Override
+		public boolean add(Map.Entry<Object, Object> e) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean addAll(Collection<? extends Map.Entry<Object, Object>> c) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean containsAll(Collection<?> c) {
+			return entrySet.containsAll(c);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			return o == this || entrySet.equals(o);
+		}
+
+		@Override
+		public int hashCode() {
+			return entrySet.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return entrySet.toString();
+		}
+
+		@Override
+		public boolean removeAll(Collection<?> c) {
+			return entrySet.removeAll(c);
+		}
+
+		@Override
+		public boolean retainAll(Collection<?> c) {
+			return entrySet.retainAll(c);
+		}
+
+		@Override
+		public Iterator<Map.Entry<Object, Object>> iterator() {
+			return entrySet.iterator();
+		}
+
+		@Override
+		public int compareTo(Set<Map.Entry<Object, Object>> o) {
+			//o.forEach(objectObjectEntry -> objectObjectEntry.);
+			return 0;
+		}
+	}
 	
 	private class OutputStreamWrapper extends FilterOutputStream {
         private boolean firstlineseen = false;
