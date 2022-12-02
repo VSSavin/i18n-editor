@@ -1,9 +1,6 @@
 package com.jvms.i18neditor.editor;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -69,6 +66,21 @@ public class TranslationTreeNode extends DefaultMutableTreeNode {
 				.filter(i -> i.getName().equals(name))
 				.findFirst();
 		return child.isPresent() ? child.get() : null;
+	}
+
+	@Override
+	public Enumeration depthFirstEnumeration() {
+		return postorderEnumeration();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Enumeration children() {
+		if (children == null) {
+			return EMPTY_ENUMERATION;
+		} else {
+			return children.elements();
+		}
 	}
 	
 	public TranslationTreeNode cloneWithChildren() {
